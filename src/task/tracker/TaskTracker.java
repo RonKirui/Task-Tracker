@@ -4,160 +4,126 @@
  */
 package task.tracker;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+/**
+ *
+ * @Ronald Kiplangat
+ * github.com/RonKirui
+ */
 
-public class TaskTracker {
-    private static final String FILE_NAME = "tasks.json";
-    
-    private static List<Map<String, Object>> tasks = new ArrayList<>();
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import task.tracker.handlers.TaskManager;
+import task.tracker.models.Task;
+
+public class TaskTracker implements TaskInterface{
+    private static List<Task> tasks = new ArrayList<>();
 
     public static void main(String[] args) {
-        loadTasks();
-        if (args.length < 1) {
-            System.out.println("Usage: java TaskTrackerCLI <command> [arguments]");
+        Scanner scanner = new Scanner(System.in);
+        tasks = TaskManager.loadTasks(); // Load existing tasks
+        tasks = new ArrayList<>(tasks); //Make a mutable list
+        
+        System.out.println("Welcome to Task Tracker CLI!");
+        while (true) {
+            System.out.println("\n1 - Add Task");
+            System.out.println("2 - Update Task");
+            System.out.println("3 - Delete Task");
+            System.out.println("4 - Mark Task as In Progress");
+            System.out.println("5 - Mark Task as Done");
+            System.out.println("6 - List All Tasks");
+            System.out.println("7 - List Done Tasks");
+            System.out.println("8 - List Not Done Tasks");
+            System.out.println("9 - List In Progress Tasks");
+            System.out.println("0 - Exit");
+
+            System.out.print("> ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            TaskTracker tsk = new TaskTracker();
+            switch (choice) {
+                case 1 -> tsk.Add (scanner);
+                case 2 -> tsk.Update(scanner);
+                case 3 -> tsk.Delete(scanner);
+                case 4 -> tsk.ChangeStatus(scanner, "in-progress");
+                case 5 -> tsk.ChangeStatus(scanner, "done");
+                case 6 -> tsk.List("all");
+                case 7 -> tsk.List("done");
+                case 8 -> tsk.List("todo");
+                case 9 -> tsk.List("in-progress");
+                case 0 -> {
+                    TaskManager.saveTasks(tasks);
+                    System.out.println("Goodbye!");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Try again.");
+            }
+        }
+    }
+
+    
+    @Override
+    public void Add(Scanner scanner) {
+    System.out.print("Enter task title: ");
+    String title = scanner.nextLine();
+    Task task = new Task(tasks.size() + 1, title, "todo");
+    tasks.add(task);
+    TaskManager.saveTasks(tasks);
+    System.out.println("Task added successfully!");
+}
+
+    @Override
+    public void Update(Scanner scanner) {
+    System.out.print("Enter Task ID to update: ");
+    int id = scanner.nextInt();
+    scanner.nextLine();
+
+    for (Task task : tasks) {
+        if (task.getId() == id) {
+            System.out.print("Enter new title: ");
+            String newTitle = scanner.nextLine();
+            task.setTitle(newTitle);
+            TaskManager.saveTasks(tasks);
+            System.out.println("Task updated successfully!");
             return;
         }
-        String command = args[0];
-
-        switch (command) {
-            case "add":
-                if (args.length < 2) {
-                    System.out.println("Usage: java TaskTrackerCLI add \"task description\"");
-                    return;
-                }
-                addTask(args[1]);
-                break;
-            case "list":
-                listTasks(args.length > 1 ? args[1] : null);
-                break;
-            case "update":
-                if (args.length < 3) {
-                    System.out.println("Usage: java TaskTrackerCLI update <id> \"new description\"");
-                    return;
-                }
-                updateTask(Integer.parseInt(args[1]), args[2]);
-                break;
-            case "delete":
-                if (args.length < 2) {
-                    System.out.println("Usage: java TaskTrackerCLI delete <id>");
-                    return;
-                }
-                deleteTask(Integer.parseInt(args[1]));
-                break;
-            case "mark-in-progress":
-                if (args.length < 2) {
-                    System.out.println("Usage: java TaskTrackerCLI mark-in-progress <id>");
-                    return;
-                }
-                updateStatus(Integer.parseInt(args[1]), "in-progress");
-                break;
-            case "mark-done":
-                if (args.length < 2) {
-                    System.out.println("Usage: java TaskTrackerCLI mark-done <id>");
-                    return;
-                }
-                updateStatus(Integer.parseInt(args[1]), "done");
-                break;
-            default:
-                System.out.println("Invalid command.");
-        }
-        saveTasks();
     }
+    System.out.println("Task not found!");
+}
 
-    private static void addTask(String description) {
-        int id = tasks.isEmpty() ? 1 : (int) tasks.get(tasks.size() - 1).get("id") + 1;
-        Map<String, Object> task = new HashMap<>();
-        task.put("id", id);
-        task.put("description", description);
-        task.put("status", "todo");
-        task.put("createdAt", new Date().toString());
-        task.put("updatedAt", new Date().toString());
-        tasks.add(task);
-        System.out.println("Task added successfully (ID: " + id + ")");
-    }
-
-    private static void listTasks(String statusFilter) {
-        for (Map<String, Object> task : tasks) {
-            if (statusFilter == null || task.get("status").equals(statusFilter)) {
-                System.out.println(task);
-            }
+    @Override
+    public void Delete(Scanner scanner) {
+    System.out.print("Enter Task ID to delete: ");
+    int id = scanner.nextInt();
+    tasks.removeIf(task -> task.getId() == id);
+    TaskManager.saveTasks(tasks);
+    System.out.println("Task deleted successfully!");
+}
+    @Override
+    public void ChangeStatus(Scanner scanner, String status) {
+    System.out.print("Enter Task ID: ");
+    int id = scanner.nextInt();
+    for (Task task : tasks) {
+        if (task.getId() == id) {
+            task.setStatus(status);
+            TaskManager.saveTasks(tasks);
+            System.out.println("Task marked as " + status + "!");
+            return;
         }
     }
+    System.out.println("Task not found!");
+}
 
-    private static void updateTask(int id, String newDescription) {
-        for (Map<String, Object> task : tasks) {
-            if ((int) task.get("id") == id) {
-                task.put("description", newDescription);
-                task.put("updatedAt", new Date().toString());
-                System.out.println("Task updated successfully.");
-                return;
-            }
-        }
-        System.out.println("Task not found.");
-    }
-
-    private static void deleteTask(int id) {
-        tasks.removeIf(task -> (int) task.get("id") == id);
-        System.out.println("Task deleted successfully.");
-    }
-
-    private static void updateStatus(int id, String newStatus) {
-        for (Map<String, Object> task : tasks) {
-            if ((int) task.get("id") == id) {
-                task.put("status", newStatus);
-                task.put("updatedAt", new Date().toString());
-                System.out.println("Task status updated to: " + newStatus);
-                return;
-            }
-        }
-        System.out.println("Task not found.");
-    }
-
-    private static void loadTasks() {
-        try {
-            File file = new File(FILE_NAME);
-            if (!file.exists()) return;
-            String content = new String(Files.readAllBytes(Paths.get(FILE_NAME)));
-            if (!content.isEmpty()) {
-                tasks = parseJson(content);
-            }
-        } catch (IOException e) {
-            System.out.println("Error loading tasks.");
+    @Override
+    public void List(String filter) {
+         System.out.println("\nTasks:");
+            for (Task task : tasks) {
+                if (filter.equals("all") || task.getStatus().equals(filter)) {
+            System.out.println(task.getId() + ". " + task.getTitle() + " [" + task.getStatus() + "]");
         }
     }
-
-    private static void saveTasks() {
-        try {
-            String json = toJson(tasks);
-            Files.write(Paths.get(FILE_NAME), json.getBytes());
-        } catch (IOException e) {
-            System.out.println("Error saving tasks.");
-        }
+        
+        //throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
-    private static String toJson(List<Map<String, Object>> list) {
-        StringBuilder json = new StringBuilder("[\n");
-        for (Map<String, Object> task : list) {
-            json.append("  {\n");
-            for (Map.Entry<String, Object> entry : task.entrySet()) {
-                json.append("    \"").append(entry.getKey()).append("\": \"").append(entry.getValue()).append("\",\n");
-            }
-            json.setLength(json.length() - 2);
-            json.append("\n  },\n");
-        }
-        if (!list.isEmpty()) json.setLength(json.length() - 2);
-        json.append("\n]");
-        return json.toString();
-    }
-
-    private static List<Map<String, Object>> parseJson(String json) {
-        List<Map<String, Object>> list = new ArrayList<>();
-        json = json.replace("[", "").replace("]", "").trim();
-        if (json.isEmpty()) return list;
-
-        String[] entries = json.split("},");
-        for (String entry : entries) {
-            entry = entry.replace("{", "").replace("}", "").trim();
-            String[] keyValues = entr
+}
