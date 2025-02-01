@@ -71,5 +71,7 @@ Task marked as done!
 Contributing
 Feel free to fork and contribute to this project. Pull requests are welcome! 🚀
 
+Project URL: https://roadmap.sh/projects/task-tracker
+
 License
 This project is open-source and free to use.
