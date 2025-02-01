@@ -19,7 +19,8 @@ Interface-based method initialization
 Project Structure
 
 
-TaskTrackerCLI/
+TaskTracker/
+
 │── src/
 │   ├── task/tracker/
 │   │   ├── Task.java
@@ -29,6 +30,8 @@ TaskTrackerCLI/
 │── tasks.json (stores tasks)
 │── build.xml (Ant build script)
 │── README.md
+
+
 How to Run the Project
 
 1️⃣ Set Up the Project
@@ -68,6 +71,8 @@ Marking as Done
 > 5
 Enter task ID: 2
 Task marked as done!
+
+
 Contributing
 Feel free to fork and contribute to this project. Pull requests are welcome! 🚀
 
