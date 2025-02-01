@@ -10,6 +10,8 @@ package task.tracker;
  * github.com/RonKirui
  */
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -67,7 +69,12 @@ public class TaskTracker implements TaskInterface{
     public void Add(Scanner scanner) {
     System.out.print("Enter task title: ");
     String title = scanner.nextLine();
-    Task task = new Task(tasks.size() + 1, title, "todo");
+    System.out.print("Enter task Description: ");
+    String desc = scanner.nextLine();
+    LocalDateTime dt = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss");
+    String datetime = dt.format(formatter);
+    Task task = new Task(tasks.size() + 1, title,desc, "todo", datetime, datetime);
     tasks.add(task);
     TaskManager.saveTasks(tasks);
     System.out.println("Task added successfully!");
@@ -81,9 +88,17 @@ public class TaskTracker implements TaskInterface{
 
     for (Task task : tasks) {
         if (task.getId() == id) {
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy HH:mm:ss");
+            String timenow = now.format(formatter);
+            
             System.out.print("Enter new title: ");
             String newTitle = scanner.nextLine();
+            System.out.print("Enter new description: ");
+            String newDesc = scanner.nextLine();
             task.setTitle(newTitle);
+            task.setDescription(newDesc);
+            task.setUpdatedAt(timenow);
             TaskManager.saveTasks(tasks);
             System.out.println("Task updated successfully!");
             return;
@@ -117,10 +132,11 @@ public class TaskTracker implements TaskInterface{
 
     @Override
     public void List(String filter) {
+        
          System.out.println("\nTasks:");
             for (Task task : tasks) {
                 if (filter.equals("all") || task.getStatus().equals(filter)) {
-            System.out.println(task.getId() + ". " + task.getTitle() + " [" + task.getStatus() + "]");
+            System.out.println(task.getId() + ". \t" + task.getTitle()+"\t\t" + task.getDescription() + "\t\t [" + task.getStatus() + "] ["+ task.getCreatedAt()+ "] ["+ task.getUpdatedAt()+ "]");
         }
     }
         

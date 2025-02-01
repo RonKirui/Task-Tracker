@@ -13,12 +13,44 @@ package task.tracker.models;
 public class Task {
     int id;
     String title;
+    String description;
     String status; // "todo", "in-progress", "done"
+    String createdAt;
+    String updatedAt;
 
-    public Task(int id, String title, String status) {
+   
+
+    public Task(int id, String title, String description, String status, String createdAt, String updatedAt) {
         this.id = id;
         this.title = title;
+        this.description = description;
         this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     // Getters & Setters
